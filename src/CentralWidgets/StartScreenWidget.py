@@ -5,6 +5,8 @@ from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QFileDialog
 from PyQt6.QtGui import QIcon, QFont, QPixmap, QMovie, QRegion
 
+
+
 class StartScreenWidget(QWidget):
 
     def __init__(self):
@@ -49,5 +51,4 @@ class StartScreenWidget(QWidget):
             self.start_btn.setEnabled(True)
 
     def start_btn_clicked(self):
-        #TODO replace startScreenWidget with plotWidget
-        pass
+        self.parent().change_central_widget("plot_screen_widget")
