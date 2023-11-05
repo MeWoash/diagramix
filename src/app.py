@@ -5,6 +5,6 @@ import sys
 if __name__ == "__main__":
 
     app = QApplication(sys.argv)
-    window = MainWindow.MainWindow()
-    window.show()
+    mainWindow = MainWindow.MainWindow()
+    mainWindow.show()
     app.exec()
