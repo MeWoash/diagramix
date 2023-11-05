@@ -10,4 +10,5 @@ dependencies:
     - numpy
     - pandas
     - scipy
-    - matplotlib
+    - PyQt6
+    - pyqtgraph
