@@ -1,0 +1,13 @@
+name: diagramix
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - numpy
+    - pandas
+    - scipy
+    - matplotlib
