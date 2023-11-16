@@ -4,8 +4,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLa
 from PyQt6.QtGui import QIcon, QFont, QPixmap, QMovie, QRegion
 
 from Toolbars import ExitWidget
-from CentralWidgets import StartScreenWidget, PlotScreenWidget
-
+from Widgets import StartScreenWidget, PlotScreenWidget, Plot
 
 # Subclass QMainWindow to customize your application's main window
 class MainWindow(QMainWindow):
@@ -14,10 +13,15 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Diagramix")
         
-        self.create_central_widgets()
-        self.create_toolbar()
-        self.change_central_widget("start_screen_widget")
-        self.change_toolbar("exit_button_stub")
+        # self.create_central_widgets()
+        # self.create_toolbar()
+        # self.change_central_widget("start_screen_widget")
+        # self.change_toolbar("exit_button_stub")
+
+
+        # GRAPH TEST
+        p = Plot.DiagramixPlot()
+        self.setCentralWidget(p)
 
     def create_central_widgets(self):
         self.centralwidgets = {
@@ -32,14 +36,16 @@ class MainWindow(QMainWindow):
             self.setCentralWidget(self.centralwidgets[widget])
 
     def create_toolbar(self):
-         self.toolbars = {
-             "exit_button_stub": Toolbars.ExitWidget()
-         }
+        #  self.toolbars = {
+        #      "exit_button_stub": Toolbars.ExitWidget()
+        #  }
+        pass
 
     def change_toolbar(self, toolbar: str):
-        if toolbar not in self.toolbars.keys():
-            print("Widget doesnt exist!")
-        else:
-            self.addToolBar(self.toolbars[toolbar])
+        # if toolbar not in self.toolbars.keys():
+        #     print("Widget doesnt exist!")
+        # else:
+        #     self.addToolBar(self.toolbars[toolbar])
+        pass
 
 
