@@ -1,6 +1,6 @@
 import typing
 from PyQt6 import QtCore
-from pyqtgraph import PlotWidget, GraphicsLayoutWidget
+from pyqtgraph import PlotWidget, GraphicsLayoutWidget, PlotItem
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QPushButton, QLabel, QLineEdit
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QIntValidator
@@ -23,3 +23,7 @@ class DiagramixPlotSubplotControl(QWidget):
         self.n_max_columns_input = QLineEdit()
         self.n_max_columns_input.setValidator(QIntValidator(1,10))
         self.main_layout.addWidget(self.n_max_columns_input, 1, 1)
+
+
+
+    
