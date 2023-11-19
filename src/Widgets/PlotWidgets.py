@@ -1,9 +1,8 @@
 import typing
 from PyQt6 import QtCore
-from pyqtgraph import GraphicsLayoutWidget
+from pyqtgraph import GraphicsLayoutWidget, PlotItem, PlotDataItem
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QCheckBox
 from PyQt6.QtCore import QSize, Qt
-from Widgets import PlotWidgetsUtility
 import pyqtgraph as pg
 import numpy as np
 import math
@@ -11,13 +10,17 @@ import math
 
 class DiagramixPlot(GraphicsLayoutWidget):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None, show=False, size=None, title=None, **kargs):
+        super().__init__(parent, show, size, title, **kargs)
+
         self.n_subplots = 1
         self.n_max_columns = 1
         self.subplots = []
-        self.sync_axes = False
+        self.sync_x_axes = False
+        self.sync_y_axes = False
 
+    def __del__(self):
+        self.clear_subplots()
 
     def set_n_subplots(self, n_subplots):
         self.n_subplots = n_subplots
@@ -26,75 +29,88 @@ class DiagramixPlot(GraphicsLayoutWidget):
         self.n_max_columns = n_max_columns
 
     def clear_subplots(self):
-        for p in self.subplots:
-            del p
         self.subplots.clear()
         self.clear()
 
-    def create_subplots(self, n_subplots, max_columns=2):
-        
-        for i in range(n_subplots):
-            row = i // max_columns
-            col = i % max_columns
-            self.subplots.append(self.addPlot(row=row, col=col))
+    def create_subplots(self):
+        for i in range(self.n_subplots):
+            row = i // self.n_max_columns
+            col = i % self.n_max_columns
+            p = DiagramixSubPlot()
+            self.subplots.append(p)
+            self.addItem(p, row=row, col=col)
+            p.setParentItem(self.centralWidget)
 
-    def sync_state_changed(self, state):
-        if state == Qt.CheckState.Unchecked.value or state == Qt.CheckState.PartiallyChecked.value:
-            self.sync_axes = False
-        if state == Qt.CheckState.Checked.value:
-            self.sync_axes = True
-        self.synchronize_axes()
-
-    def synchronize_axes(self):
-        if self.sync_axes == True:
+    def synchronize_x_axes(self):
+        if self.sync_x_axes == True:
             for i in range(1, len(self.subplots)):
                 self.subplots[i].setXLink(self.subplots[0])
-                self.subplots[i].setYLink(self.subplots[0])
         else: 
             for i in range(1, len(self.subplots)):
                 self.subplots[i].setXLink(None)
+
+    def synchronize_y_axes(self):
+        if self.sync_y_axes == True:
+            for i in range(1, len(self.subplots)):
+                self.subplots[i].setYLink(self.subplots[0])
+        else: 
+            for i in range(1, len(self.subplots)):
                 self.subplots[i].setYLink(None)
 
+    def clear_plot_items(self):
+        for p in self.subplots:
+            p.clear_plot_data_items()
+
+
     def draw(self):
-        self.clear_subplots()
-        self.create_subplots(self.n_subplots, self.n_max_columns)
+        self.clear_plot_items()
         x=np.linspace(0,6.28,100)
         y=np.sin(x)
+
         for i in range(len(self.subplots)):
-            self.subplots[i].plot(x,np.cos(x)*np.sin(x*(i+1)))
+            plot_object = DiagramixPlotObject(self)
+            plot_object.setData(x,np.cos(x)*np.sin(x*(i+1)))
+            self.subplots[i].add_plot_data_item(plot_object)
 
-        self.synchronize_axes()
+            plot_object2 = DiagramixPlotObject(self)
+            plot_object2.setData(x,np.sin(x)*np.cos(x*(i+1)))
+            self.subplots[i].add_plot_data_item(plot_object2)
 
-class DiagramixPlotControls(QWidget):
+        self.synchronize_x_axes()
+        self.synchronize_y_axes()
 
-    def __init__(self, diagramix_plot: DiagramixPlot) -> None:
-        super().__init__()
-        self.diagramix_plot_ref = diagramix_plot
+class DiagramixSubPlot(PlotItem):
 
-        self.main_layout = QVBoxLayout()
-        self.setLayout(self.main_layout)
+    def __init__(self, parent=None, name=None, labels=None, title=None, viewBox=None, axisItems=None, enableMenu=True, **kargs):
+        super().__init__(parent, name, labels, title, viewBox, axisItems, enableMenu, **kargs)
+        self.plot_data_items = []
 
-        # MAIN LABEL
-        self.main_layout.addWidget(QLabel("Control Graph"), alignment=Qt.AlignmentFlag.AlignTop)
+    def __del__(self):
+        self.clear_plot_data_items()
+        print("Deleted SubPlot")
 
-        # SUBPLOTS OPTION
-        self.subplot_control = PlotWidgetsUtility.DiagramixPlotSubplotControl()
-        self.subplot_control.n_plots_input.setText(str(self.diagramix_plot_ref.n_subplots))
-        self.subplot_control.n_plots_input.textChanged.connect(lambda x: self.diagramix_plot_ref.set_n_subplots(int(x)))
-        self.subplot_control.n_max_columns_input.setText(str(self.diagramix_plot_ref.n_max_columns))
-        self.subplot_control.n_max_columns_input.textChanged.connect(lambda x: self.diagramix_plot_ref.set_n_max_columns(int(x)))
-        self.main_layout.addWidget(self.subplot_control, alignment=Qt.AlignmentFlag.AlignTop)
+    def add_plot_data_item(self, plot_data_item: PlotDataItem):
+        self.plot_data_items.append(plot_data_item)
+        self.addItem(plot_data_item)
 
-        #PLOT CHECKBOXES
-        self.sync_axes_btn = QCheckBox("Sync axes")
-        self.sync_axes_btn.stateChanged.connect(self.diagramix_plot_ref.sync_state_changed)
-        self.sync_axes_btn.setCheckState(Qt.CheckState.Unchecked)
-        self.main_layout.addWidget(self.sync_axes_btn)
+    def clear_plot_data_items(self):
+        self.plot_data_items.clear()
+        self.clear()
+        
 
-        # DRAW BUTTON
-        self.draw_button = QPushButton("Draw")
-        self.draw_button.clicked.connect(self.diagramix_plot_ref.draw)
-        self.main_layout.addWidget(self.draw_button, alignment=Qt.AlignmentFlag.AlignBottom)
+class DiagramixPlotObject(PlotDataItem):
+
+    def __init__(self, parent=None, name=None, labels=None, title=None, viewBox=None, axisItems=None, enableMenu=True, **kargs):
+        super().__init__(parent, name, labels, title, viewBox, axisItems, enableMenu, **kargs)
+        R=np.random.randint(0,256)
+        G=np.random.randint(0,256)
+        B=np.random.randint(0,256)
+        self.setPen(R,G,B)
+
+    def __del__(self):
+        print("Deleted plot line")
+
+
 
         
             
