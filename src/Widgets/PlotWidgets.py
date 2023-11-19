@@ -3,6 +3,7 @@ from PyQt6 import QtCore
 from pyqtgraph import GraphicsLayoutWidget, PlotItem, PlotDataItem
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QCheckBox
 from PyQt6.QtCore import QSize, Qt
+from DataControl.DiagramixDataController import DiagramixDataController
 import pyqtgraph as pg
 import numpy as np
 import math
@@ -13,6 +14,7 @@ class DiagramixPlot(GraphicsLayoutWidget):
     def __init__(self, parent=None, show=False, size=None, title=None, **kargs):
         super().__init__(parent, show, size, title, **kargs)
 
+        self.data_controller = DiagramixDataController()
         self.n_subplots = 1
         self.n_max_columns = 1
         self.subplots = []
@@ -92,6 +94,7 @@ class DiagramixSubPlot(PlotItem):
     def add_plot_data_item(self, plot_data_item: PlotDataItem):
         self.plot_data_items.append(plot_data_item)
         self.addItem(plot_data_item)
+
 
     def clear_plot_data_items(self):
         self.plot_data_items.clear()
