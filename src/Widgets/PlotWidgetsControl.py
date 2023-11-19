@@ -14,7 +14,6 @@ class DiagramixPlotSubplotControl(QWidget):
         self.main_layout = QGridLayout()
         self.setLayout(self.main_layout)
 
-
         self.main_layout.addWidget(QLabel("Number of plots"), 0, 0)
         self.n_plots_input = QLineEdit()
         self.n_plots_input.setValidator(QIntValidator(1,10))
@@ -27,8 +26,9 @@ class DiagramixPlotSubplotControl(QWidget):
 
 class DiagramixPlotControls(QWidget):
 
-    def __init__(self, diagramix_plot: DiagramixPlot) -> None:
-        super().__init__()
+    def __init__(self, diagramix_plot, parent) -> None:
+        super().__init__(parent)
+
         self.diagramix_plot_ref = diagramix_plot
 
         self.main_layout = QVBoxLayout()

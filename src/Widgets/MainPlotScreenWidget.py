@@ -16,7 +16,7 @@ class PlotScreenWidget(QWidget):
         self.setLayout(self.main_layout)
 
         self.diagramix_plot = DiagramixPlot()
-        self.diagramix_plot_controls = DiagramixPlotControls(self.diagramix_plot)
+        self.diagramix_plot_controls = DiagramixPlotControls(self.diagramix_plot, self)
 
         self.main_layout.addWidget(self.diagramix_plot_controls)
         self.main_layout.addWidget(self.diagramix_plot)

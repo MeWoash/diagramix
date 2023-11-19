@@ -10,8 +10,9 @@ import math
 
 class DiagramixPlot(GraphicsLayoutWidget):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None, show=False, size=None, title=None, **kargs):
+        super().__init__(parent, show, size, title, **kargs)
+
         self.n_subplots = 1
         self.n_max_columns = 1
         self.subplots = []
@@ -79,9 +80,19 @@ class DiagramixPlot(GraphicsLayoutWidget):
         y=np.sin(x)
 
         for i in range(len(self.subplots)):
-            plot_object = DiagramixPlotObject()
+            plot_object = DiagramixPlotObject(self)
             plot_object.setData(x,np.cos(x)*np.sin(x*(i+1)))
             self.subplots[i].add_plot_data_item(plot_object)
+
+            plot_object2 = DiagramixPlotObject(self)
+            plot_object2.setData(x,np.sin(x)*np.cos(x*(i+1)))
+            self.subplots[i].add_plot_data_item(plot_object2)
+
+            # print("before",self.subplots[i].plot_data_items)
+            # del plot_object2
+            # print("after",self.subplots[i].plot_data_items)
+
+
 
     
         self.synchronize_x_axes()
@@ -111,7 +122,14 @@ class DiagramixPlotObject(PlotDataItem):
 
     def __init__(self, parent=None, name=None, labels=None, title=None, viewBox=None, axisItems=None, enableMenu=True, **kargs):
         super().__init__(parent, name, labels, title, viewBox, axisItems, enableMenu, **kargs)
+        R=np.random.randint(0,256)
+        G=np.random.randint(0,256)
+        B=np.random.randint(0,256)
+        self.setPen(R,G,B)
 
+    # def __del__(self):
+    #     print("Removing", self)
+    #     self.parentItem().plot_data_items.remove(self)
 
 
         
