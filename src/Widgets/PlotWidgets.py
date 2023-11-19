@@ -3,7 +3,6 @@ from PyQt6 import QtCore
 from pyqtgraph import GraphicsLayoutWidget, PlotItem, PlotDataItem
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QCheckBox
 from PyQt6.QtCore import QSize, Qt
-from Widgets import PlotWidgetsUtility
 import pyqtgraph as pg
 import numpy as np
 import math
@@ -113,48 +112,6 @@ class DiagramixPlotObject(PlotDataItem):
     def __init__(self, parent=None, name=None, labels=None, title=None, viewBox=None, axisItems=None, enableMenu=True, **kargs):
         super().__init__(parent, name, labels, title, viewBox, axisItems, enableMenu, **kargs)
 
-    
-
-class DiagramixPlotControls(QWidget):
-
-    def __init__(self, diagramix_plot: DiagramixPlot) -> None:
-        super().__init__()
-        self.diagramix_plot_ref = diagramix_plot
-
-        self.main_layout = QVBoxLayout()
-        self.setLayout(self.main_layout)
-
-        # MAIN LABEL
-        self.main_layout.addWidget(QLabel("Control Graph"), alignment=Qt.AlignmentFlag.AlignTop)
-
-        # SUBPLOTS OPTION
-        self.subplot_control = PlotWidgetsUtility.DiagramixPlotSubplotControl()
-        self.subplot_control.n_plots_input.setText(str(self.diagramix_plot_ref.n_subplots))
-        self.subplot_control.n_plots_input.textChanged.connect(lambda x: self.diagramix_plot_ref.set_n_subplots(int(x)))
-        self.subplot_control.n_max_columns_input.setText(str(self.diagramix_plot_ref.n_max_columns))
-        self.subplot_control.n_max_columns_input.textChanged.connect(lambda x: self.diagramix_plot_ref.set_n_max_columns(int(x)))
-        self.main_layout.addWidget(self.subplot_control, alignment=Qt.AlignmentFlag.AlignTop)
-
-        #PLOT CHECKBOXES
-        self.sync_x_axes_btn = QCheckBox("Sync X axes")
-        self.sync_x_axes_btn.stateChanged.connect(self.diagramix_plot_ref.sync_x_state_changed)
-        self.sync_x_axes_btn.setCheckState(Qt.CheckState.Unchecked)
-        self.main_layout.addWidget(self.sync_x_axes_btn)
-
-        self.sync_y_axes_btn = QCheckBox("Sync Y axes")
-        self.sync_y_axes_btn.stateChanged.connect(self.diagramix_plot_ref.sync_y_state_changed)
-        self.sync_y_axes_btn.setCheckState(Qt.CheckState.Unchecked)
-        self.main_layout.addWidget(self.sync_y_axes_btn)
-
-        #CLEAR BUTTON
-        self.clear_button = QPushButton("Clear")
-        self.clear_button.clicked.connect(self.diagramix_plot_ref.clear_subplots)
-        self.main_layout.addWidget(self.clear_button, alignment=Qt.AlignmentFlag.AlignBottom)
-
-        # DRAW BUTTON
-        self.draw_button = QPushButton("Draw")
-        self.draw_button.clicked.connect(self.diagramix_plot_ref.draw)
-        self.main_layout.addWidget(self.draw_button, alignment=Qt.AlignmentFlag.AlignBottom)
 
 
         
