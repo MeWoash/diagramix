@@ -11,7 +11,7 @@ class PlotScreenWidget(QWidget):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        
+
         self.main_layout = QHBoxLayout()
         self.setLayout(self.main_layout)
 
