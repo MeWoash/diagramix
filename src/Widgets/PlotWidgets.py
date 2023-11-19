@@ -16,7 +16,9 @@ class DiagramixPlot(GraphicsLayoutWidget):
         self.n_subplots = 1
         self.n_max_columns = 1
         self.subplots = []
-        self.sync_axes = False
+        self.sync_x_axes = False
+        self.sync_y_axes = False
+
 
 
     def set_n_subplots(self, n_subplots):
@@ -38,21 +40,34 @@ class DiagramixPlot(GraphicsLayoutWidget):
             col = i % max_columns
             self.subplots.append(self.addPlot(row=row, col=col))
 
-    def sync_state_changed(self, state):
+    def sync_x_state_changed(self, state):
         if state == Qt.CheckState.Unchecked.value or state == Qt.CheckState.PartiallyChecked.value:
-            self.sync_axes = False
+            self.sync_x_axes = False
         if state == Qt.CheckState.Checked.value:
-            self.sync_axes = True
-        self.synchronize_axes()
+            self.sync_x_axes = True
+        self.synchronize_x_axes()
 
-    def synchronize_axes(self):
-        if self.sync_axes == True:
+    def synchronize_x_axes(self):
+        if self.sync_x_axes == True:
             for i in range(1, len(self.subplots)):
                 self.subplots[i].setXLink(self.subplots[0])
-                self.subplots[i].setYLink(self.subplots[0])
         else: 
             for i in range(1, len(self.subplots)):
                 self.subplots[i].setXLink(None)
+
+    def sync_y_state_changed(self, state):
+        if state == Qt.CheckState.Unchecked.value or state == Qt.CheckState.PartiallyChecked.value:
+            self.sync_y_axes = False
+        if state == Qt.CheckState.Checked.value:
+            self.sync_y_axes = True
+        self.synchronize_y_axes()
+
+    def synchronize_y_axes(self):
+        if self.sync_y_axes == True:
+            for i in range(1, len(self.subplots)):
+                self.subplots[i].setYLink(self.subplots[0])
+        else: 
+            for i in range(1, len(self.subplots)):
                 self.subplots[i].setYLink(None)
 
     def draw(self):
@@ -63,7 +78,8 @@ class DiagramixPlot(GraphicsLayoutWidget):
         for i in range(len(self.subplots)):
             self.subplots[i].plot(x,np.cos(x)*np.sin(x*(i+1)))
 
-        self.synchronize_axes()
+        self.synchronize_x_axes()
+        self.synchronize_y_axes()
 
 class DiagramixPlotControls(QWidget):
 
@@ -86,15 +102,26 @@ class DiagramixPlotControls(QWidget):
         self.main_layout.addWidget(self.subplot_control, alignment=Qt.AlignmentFlag.AlignTop)
 
         #PLOT CHECKBOXES
-        self.sync_axes_btn = QCheckBox("Sync axes")
-        self.sync_axes_btn.stateChanged.connect(self.diagramix_plot_ref.sync_state_changed)
-        self.sync_axes_btn.setCheckState(Qt.CheckState.Unchecked)
-        self.main_layout.addWidget(self.sync_axes_btn)
+        self.sync_x_axes_btn = QCheckBox("Sync X axes")
+        self.sync_x_axes_btn.stateChanged.connect(self.diagramix_plot_ref.sync_x_state_changed)
+        self.sync_x_axes_btn.setCheckState(Qt.CheckState.Unchecked)
+        self.main_layout.addWidget(self.sync_x_axes_btn)
+
+        self.sync_y_axes_btn = QCheckBox("Sync Y axes")
+        self.sync_y_axes_btn.stateChanged.connect(self.diagramix_plot_ref.sync_y_state_changed)
+        self.sync_y_axes_btn.setCheckState(Qt.CheckState.Unchecked)
+        self.main_layout.addWidget(self.sync_y_axes_btn)
+
+        #CLEAR BUTTON
+        self.clear_button = QPushButton("Clear")
+        self.clear_button.clicked.connect(self.diagramix_plot_ref.clear_subplots)
+        self.main_layout.addWidget(self.clear_button, alignment=Qt.AlignmentFlag.AlignBottom)
 
         # DRAW BUTTON
         self.draw_button = QPushButton("Draw")
         self.draw_button.clicked.connect(self.diagramix_plot_ref.draw)
         self.main_layout.addWidget(self.draw_button, alignment=Qt.AlignmentFlag.AlignBottom)
+
 
         
             
