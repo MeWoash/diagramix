@@ -1,13 +1,20 @@
 import typing
 from PyQt6 import QtCore
 from pyqtgraph import PlotWidget, GraphicsLayoutWidget, PlotItem
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QPushButton, QLabel, QLineEdit, QCheckBox, QFileDialog, QTableWidget, QTableWidgetItem, QMainWindow
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QPushButton, QLabel, QLineEdit, QCheckBox, QFileDialog, QTableWidget, QTableWidgetItem, QMainWindow, QScrollArea, QComboBox, QColorDialog
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QIntValidator
+from PyQt6.QtGui import QIntValidator, QColor, QPalette
 from Widgets.PlotWidgets import DiagramixPlot
 from DataControl.DiagramixDataController import DiagramixDataController
+import numpy as np
 
 class DiagramixPlotControls(QWidget):
+    """
+    Main widget which stores other widgets that can configure Plot.
+
+    Args:
+        QWidget (_type_): _description_
+    """
 
     def __init__(self, parent: QWidget, diagramix_plot: DiagramixPlot) -> None:
         super().__init__(parent)
@@ -26,11 +33,9 @@ class DiagramixPlotControls(QWidget):
         self.main_layout.addWidget(QLabel("Control Graph"), alignment=Qt.AlignmentFlag.AlignTop)
 
         # SUBPLOTS OPTION
-        self.subplot_control = DiagramixPlotSubplotGenerator()
+        self.subplot_control = DiagramixPlotSubplotGenerator(self)
         self.subplot_control.n_plots_input.setText(str(self.diagramix_plot_ref.n_subplots))
-        # self.subplot_control.n_plots_input.textChanged.connect(lambda x: self.diagramix_plot_ref.set_n_subplots(int(x)))
         self.subplot_control.n_max_columns_input.setText(str(self.diagramix_plot_ref.n_max_columns))
-        # self.subplot_control.n_max_columns_input.textChanged.connect(lambda x: self.diagramix_plot_ref.set_n_max_columns(int(x)))
         self.subplot_control.generate_button.clicked.connect(self.generate_subplots_clicked)
         self.main_layout.addWidget(self.subplot_control, alignment=Qt.AlignmentFlag.AlignTop)
 
@@ -48,6 +53,9 @@ class DiagramixPlotControls(QWidget):
         self.view_table_button.clicked.connect(self.view_table_button_clicked)
         self.main_layout.addWidget(self.view_table_button)
 
+        #SIGNAL GENERATOR
+        self.signal_generator = DiagramixSignalContainer(self, self.diagramix_plot_ref)
+        self.main_layout.addWidget(self.signal_generator)
 
         #PLOT CHECKBOXES
         self.sync_x_axes_btn = QCheckBox("Sync X axes")
@@ -113,8 +121,14 @@ class DiagramixPlotControls(QWidget):
         self.diagramix_plot_ref.create_subplots()
 
 class DiagramixPlotSubplotGenerator(QWidget):
-    def __init__(self) -> None:
-        super().__init__()
+    """
+    Widget Used to generate Subplots
+
+    Args:
+        QWidget (_type_): _description_
+    """
+    def __init__(self, parent) -> None:
+        super().__init__(parent)
 
         self.main_layout = QGridLayout()
         self.setLayout(self.main_layout)
@@ -134,6 +148,12 @@ class DiagramixPlotSubplotGenerator(QWidget):
 
 
 class DiagramixTableView(QTableWidget):
+    """
+    Widget showing loaded data in table.
+
+    Args:
+        QTableWidget (_type_): _description_
+    """
 
     def __init__(self, df):
         super().__init__()
@@ -155,7 +175,119 @@ class DiagramixTableView(QTableWidget):
                 self.setItem(row, col, item)
                 item.setFlags(item.flags()^(QtCore.Qt.ItemFlag.ItemIsSelectable|QtCore.Qt.ItemFlag.ItemIsEditable))
 
+class DiagramixSignalContainer(QWidget):
+    """
+    Widget used to manage signals in subplots
 
+    Args:
+        QWidget (_type_): _description_
+    """
+    
+    def __init__(self, parent: QWidget, diagramix_plot: DiagramixPlot) -> None:
+        super().__init__(parent)
+        self.diagramix_plot_ref:DiagramixPlot = diagramix_plot
+        self.data_controller:DiagramixDataController = diagramix_plot.data_controller
+        
+        self.create_layout()
+
+    def create_layout(self):
+        """
+        Creates main widget layout
+        """
+        self.main_layout = QVBoxLayout()
+        self.setLayout(self.main_layout)
+        
+        signal_generator_label = QLabel("Signal Generator")
+        self.main_layout.addWidget(signal_generator_label)
+
+        self.signal_generator = DiagramixSignalGenerator(self, self.diagramix_plot_ref)
+        self.main_layout.addWidget(self.signal_generator)
+
+        signal_table_label = QLabel("Signal Table")
+        self.main_layout.addWidget(signal_table_label)
+        
+        self.signal_table = DiagramixSignalTable(self)
+        self.main_layout.addWidget(self.signal_table)
+
+
+class DiagramixSignalGenerator(QWidget):
+    """
+    Widget used to add signals
+
+    Args:
+        QWidget (_type_): _description_
+    """
+    def __init__(self, parent, diagramix_plot: DiagramixPlot) -> None:
+        super().__init__(parent)
+        self.diagramix_plot_ref:DiagramixPlot = diagramix_plot
+        self.data_controller:DiagramixDataController = diagramix_plot.data_controller
+
+        self.create_layout()
+        
+    def create_layout(self):
+        self.main_layout = QGridLayout()
+        self.setLayout(self.main_layout)
+
+        self.signal_name_input_label = QLabel("Name")
+        self.main_layout.addWidget(self.signal_name_input_label, 0, 0)
+        self.signal_name_input = QLineEdit()
+        self.main_layout.addWidget(self.signal_name_input, 0, 1)
+
+        self.x_data_box_label = QLabel("X")
+        self.main_layout.addWidget(self.x_data_box_label, 1, 0)
+        self.x_data_box = QComboBox()
+        self.main_layout.addWidget(self.x_data_box, 1, 1)
+
+        self.y_data_box_label = QLabel("Y")
+        self.main_layout.addWidget(self.y_data_box_label, 2, 0)
+        self.y_data_box = QComboBox()
+        self.main_layout.addWidget(self.y_data_box, 2, 1)
+
+        self.color_label = QLabel("Color")
+        self.main_layout.addWidget(self.color_label, 3, 0)
+        self.color_button = QPushButton()
+        self.main_layout.addWidget(self.color_button, 3, 1)
+
+        R=np.random.randint(0,256)
+        G=np.random.randint(0,256)
+        B=np.random.randint(0,256)
+        color = QColor(R, G, B)  # Red color, you can change the values accordingly
+        self.color_button.setStyleSheet(f'background-color: rgb({color.red()}, {color.green()}, {color.blue()});')
+        self.color_button.clicked.connect(self.color_button_clicked)
+        
+        self.add_button = QPushButton("Add")
+        self.main_layout.addWidget(self.add_button, 4, 0, 1, 2)
+
+    def color_button_clicked(self):
+        color = QColorDialog.getColor()
+        self.color_button.setStyleSheet(f'background-color: rgb({color.red()}, {color.green()}, {color.blue()});')
+
+
+class DiagramixSignalTable(QScrollArea):
+    """
+    Widget displaying added signals
+
+    Args:
+        QScrollArea (_type_): _description_
+    """
+
+    def __init__(self, parent) -> None:
+        super().__init__(parent)
+
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setWidgetResizable(True)
+
+        scroll_area_widget = QWidget()
+        self.setWidget(scroll_area_widget)
+
+        self.scroll_area_layout = QVBoxLayout()
+        scroll_area_widget.setLayout(self.scroll_area_layout)
+
+        for i in range(10):
+            l = QPushButton(f"Stub {i}")
+            l.setMinimumSize(200,20)
+            self.scroll_area_layout.addWidget(l)
 
 
     
