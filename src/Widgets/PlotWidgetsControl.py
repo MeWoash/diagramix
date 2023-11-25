@@ -197,16 +197,17 @@ class DiagramixSignalContainer(QWidget):
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
         
+        self.signal_table = DiagramixSignalTable(self)
+        self.signal_generator = DiagramixSignalGenerator(self,self.signal_table, self.diagramix_plot_ref)
+
         signal_generator_label = QLabel("Signal Generator")
         self.main_layout.addWidget(signal_generator_label)
 
-        self.signal_generator = DiagramixSignalGenerator(self, self.diagramix_plot_ref)
         self.main_layout.addWidget(self.signal_generator)
 
         signal_table_label = QLabel("Signal Table")
         self.main_layout.addWidget(signal_table_label)
         
-        self.signal_table = DiagramixSignalTable(self)
         self.main_layout.addWidget(self.signal_table)
 
 
@@ -217,7 +218,7 @@ class DiagramixSignalGenerator(QWidget):
     Args:
         QWidget (_type_): _description_
     """
-    def __init__(self, parent, diagramix_plot: DiagramixPlot) -> None:
+    def __init__(self, parent, signal_table ,diagramix_plot: DiagramixPlot) -> None:
         super().__init__(parent)
         self.diagramix_plot_ref:DiagramixPlot = diagramix_plot
         self.data_controller:DiagramixDataController = diagramix_plot.data_controller
@@ -251,15 +252,37 @@ class DiagramixSignalGenerator(QWidget):
         R=np.random.randint(0,256)
         G=np.random.randint(0,256)
         B=np.random.randint(0,256)
-        color = QColor(R, G, B)  # Red color, you can change the values accordingly
+        color = QColor(R, G, B)
         self.color_button.setStyleSheet(f'background-color: rgb({color.red()}, {color.green()}, {color.blue()});')
         self.color_button.clicked.connect(self.color_button_clicked)
         
         self.add_button = QPushButton("Add")
+        self.add_button.clicked.connect(self.add_button_clicked)
         self.main_layout.addWidget(self.add_button, 4, 0, 1, 2)
 
     def color_button_clicked(self):
         color = QColorDialog.getColor()
+        self.color_button.setStyleSheet(f'background-color: rgb({color.red()}, {color.green()}, {color.blue()});')
+
+    def add_button_clicked(self):
+        #ADD TO LIST
+        self.create_signal()
+
+        #CLEAR
+        self.clear_data()
+
+    def create_signal(self):
+        pass
+
+    def clear_data(self):
+        self.signal_name_input.clear()
+        self.x_data_box.clear()
+        self.y_data_box.clear()
+        
+        R=np.random.randint(0,256)
+        G=np.random.randint(0,256)
+        B=np.random.randint(0,256)
+        color = QColor(R, G, B)
         self.color_button.setStyleSheet(f'background-color: rgb({color.red()}, {color.green()}, {color.blue()});')
 
 
@@ -286,7 +309,7 @@ class DiagramixSignalTable(QScrollArea):
 
         for i in range(10):
             l = QPushButton(f"Stub {i}")
-            l.setMinimumSize(200,20)
+            l.setMinimumHeight(20)
             self.scroll_area_layout.addWidget(l)
 
 
