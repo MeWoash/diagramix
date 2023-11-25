@@ -6,7 +6,6 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButt
 from PyQt6.QtGui import QIntValidator
 from Widgets.PlotWidgets import DiagramixPlot
 from Widgets.PlotWidgetsControl import DiagramixPlotControls
-from Widgets.FileControlWidget import DiagramixControlWidget
 from TabBars.TabBar import DiagramixTabBar
 
 class PlotScreenWidget(QWidget):
@@ -18,7 +17,7 @@ class PlotScreenWidget(QWidget):
         self.setLayout(self.main_layout)
 
         self.diagramix_plot = DiagramixPlot(self)
-        self.diagramix_tabbar = DiagramixTabBar(self)
+        self.diagramix_tabbar = DiagramixTabBar(self, self.diagramix_plot)
         # self.diagramix_plot_controls = DiagramixPlotControls(self, self.diagramix_plot)
         # self.diagramix_file_control = DiagramixControlWidget(self)
 
