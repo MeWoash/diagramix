@@ -1,7 +1,8 @@
 import typing
 from PyQt6 import QtCore
 from pyqtgraph import PlotWidget, GraphicsLayoutWidget, PlotItem
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QPushButton, QLabel, QLineEdit, QCheckBox
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QPushButton, QLabel, QLineEdit, QCheckBox, \
+    QScrollArea, QComboBox
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QIntValidator, QColor, QPalette
 from Widgets.PlotWidgets import DiagramixPlot
@@ -116,9 +117,7 @@ class DiagramixPlotSubplotGenerator(QWidget):
         self.main_layout.addWidget(self.n_max_columns_input, 1, 1)
 
         self.generate_button = QPushButton("Generate")
-<<<<<<< HEAD
         self.main_layout.addWidget(self.generate_button, 2, 0, 1, 2)
-=======
         self.main_layout.addWidget(self.generate_button, 2, 0, 1, 2)
 
 class DiagramixSignalContainer(QWidget):
@@ -262,7 +261,3 @@ class DiagramixSignalTable(QScrollArea):
             l = QPushButton(f"Stub {i}")
             l.setMinimumHeight(20)
             self.scroll_area_layout.addWidget(l)
-
-
-    
->>>>>>> master
