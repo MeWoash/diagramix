@@ -19,10 +19,14 @@ class DiagramixTabBar(QTabWidget):
         self.setTabPosition(QTabWidget.TabPosition.North)
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
-        diagramix_file_control = DiagramixFileWidget(None, self.diagramix_plot_ref)
         diagramix_plot_control = DiagramixPlotControls(None, self.diagramix_plot_ref)
-        self.addTab(diagramix_file_control, "Importyyyyyyyyyyyyyyyyyyyy")
-        self.addTab(diagramix_plot_control, "Edit")
+        diagramix_file_control = DiagramixFileWidget(None, self.diagramix_plot_ref, self)
+        self.addTab(diagramix_file_control, "File Import")
+        self.addTab(diagramix_plot_control, "Graph Edit")
+        self.setTabEnabled(1, False)
+
+    def enable_edit(self):
+        self.setTabEnabled(1, True)
 
     def __del__(self):
         pass

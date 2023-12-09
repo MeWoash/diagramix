@@ -4,8 +4,6 @@ from PyQt6.QtWidgets import QWidget, QPushButton, QLabel, QVBoxLayout, QFileDial
     QTableWidget, QTableWidgetItem
 from DataControl.DiagramixDataController import DiagramixDataController
 from Widgets.PlotWidgets import DiagramixPlot
-
-
 class DiagramixFileWidget(QWidget):
     def __init__(self, parent: QWidget, diagramix_plot: DiagramixPlot) -> None:
         super().__init__(parent)
@@ -13,6 +11,7 @@ class DiagramixFileWidget(QWidget):
         self.diagramix_plot_ref: DiagramixPlot = diagramix_plot
         self.data_controller: DiagramixDataController = diagramix_plot.data_controller
         self.create_layout()
+
 
     def create_layout(self):
         self.main_layout = QVBoxLayout()
@@ -41,6 +40,7 @@ class DiagramixFileWidget(QWidget):
             load_succeeded = self.data_controller.load_file(file_path=file_name)
 
         self.view_table_button.setEnabled(load_succeeded)
+        # self.diagramix_tabbar_ref.enable_edit()
 
     def view_table_button_clicked(self):
         window = QMainWindow(self)
