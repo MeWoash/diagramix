@@ -70,11 +70,11 @@ class DiagramixPlot(GraphicsLayoutWidget):
         y=np.sin(x)
 
         for i in range(len(self.subplots)):
-            plot_object = DiagramixPlotObject(self)
+            plot_object = DiagramixPlotObject(self.subplots[i])
             plot_object.setData(x,np.cos(x)*np.sin(x*(i+1)))
             self.subplots[i].add_plot_data_item(plot_object)
 
-            plot_object2 = DiagramixPlotObject(self)
+            plot_object2 = DiagramixPlotObject(self.subplots[i])
             plot_object2.setData(x,np.sin(x)*np.cos(x*(i+1)))
             self.subplots[i].add_plot_data_item(plot_object2)
 
