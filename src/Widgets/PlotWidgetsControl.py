@@ -249,6 +249,11 @@ class DiagramixSignalGenerator(QWidget):
         self.color_button = QPushButton()
         self.main_layout.addWidget(self.color_button, 3, 1)
 
+        self.subplot_label = QLabel("Subplot")
+        self.main_layout.addWidget(self.subplot_label, 4, 0)
+        self.subplot_box = QComboBox()
+        self.main_layout.addWidget(self.subplot_box, 4, 1)
+
         R=np.random.randint(0,256)
         G=np.random.randint(0,256)
         B=np.random.randint(0,256)
@@ -258,7 +263,7 @@ class DiagramixSignalGenerator(QWidget):
         
         self.add_button = QPushButton("Add")
         self.add_button.clicked.connect(self.add_button_clicked)
-        self.main_layout.addWidget(self.add_button, 4, 0, 1, 2)
+        self.main_layout.addWidget(self.add_button, 5, 0, 1, 2)
 
     def color_button_clicked(self):
         color = QColorDialog.getColor()
