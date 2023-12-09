@@ -1,13 +1,14 @@
 from PyQt6 import QtCore
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtWidgets import QWidget, QPushButton, QLabel, QVBoxLayout, QFileDialog
+from PyQt6.QtWidgets import QWidget, QPushButton, QLabel, QVBoxLayout, QFileDialog, QMainWindow, \
+    QTableWidget, QTableWidgetItem
 from DataControl.DiagramixDataController import DiagramixDataController
 from Widgets.PlotWidgets import DiagramixPlot
 
 
 class DiagramixFileWidget(QWidget):
     def __init__(self, parent: QWidget, diagramix_plot: DiagramixPlot) -> None:
-        super().__init__()
+        super().__init__(parent)
 
         self.diagramix_plot_ref: DiagramixPlot = diagramix_plot
         self.data_controller: DiagramixDataController = diagramix_plot.data_controller
@@ -31,11 +32,6 @@ class DiagramixFileWidget(QWidget):
         self.view_table_button.clicked.connect(self.view_table_button_clicked)
         self.main_layout.addWidget(self.view_table_button)
 
-        # DRAW BUTTON
-        self.draw_button = QPushButton("Draw")
-        self.draw_button.clicked.connect(self.diagramix_plot_ref.draw)
-        self.main_layout.addWidget(self.draw_button, alignment=Qt.AlignmentFlag.AlignBottom)
-
 
     def file_input_clicked(self):
         file_name, _ = QFileDialog.getOpenFileName(self, "Wybierz plik", "", "Wszystkie pliki (*);;Pliki CSV (*.csv);;Pliki TXT (*.txt)")
@@ -52,3 +48,25 @@ class DiagramixFileWidget(QWidget):
         window.setWindowTitle("DataFrame Preview")
         window.setCentralWidget(table)
         window.show()
+
+class DiagramixTableView(QTableWidget):
+
+    def __init__(self, df):
+        super().__init__()
+        self.df = df
+        self.populate_table()
+
+    def populate_table(self):
+        # Set the number of rows and columns
+        self.setRowCount(self.df.shape[0])
+        self.setColumnCount(self.df.shape[1])
+
+        # Set the column headers
+        # self.setHorizontalHeaderLabels(self.df.columns)
+
+        # Populate the table with data
+        for row in range(self.df.shape[0]):
+            for col in range(self.df.shape[1]):
+                item = QTableWidgetItem(str(self.df.iloc[row, col]))
+                self.setItem(row, col, item)
+                item.setFlags(item.flags() ^ (QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEditable))

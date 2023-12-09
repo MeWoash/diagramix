@@ -1,8 +1,7 @@
 import typing
 from PyQt6 import QtCore
 from pyqtgraph import PlotWidget, GraphicsLayoutWidget, PlotItem
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QPushButton, QLabel, QLineEdit, QCheckBox, \
-    QFileDialog, QTableWidget, QTableWidgetItem, QMainWindow
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QPushButton, QLabel, QLineEdit, QCheckBox
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QIntValidator
 from Widgets.PlotWidgets import DiagramixPlot
@@ -35,20 +34,6 @@ class DiagramixPlotControls(QWidget):
         self.subplot_control.generate_button.clicked.connect(self.generate_subplots_clicked)
         self.main_layout.addWidget(self.subplot_control, alignment=Qt.AlignmentFlag.AlignTop)
 
-        # LOAD FILE
-        self.file_input = QPushButton("Choose File")
-        self.file_input.clicked.connect(self.file_input_clicked)
-        self.main_layout.addWidget(self.file_input)
-
-        self.file_input_label = QLabel("File:")
-        self.main_layout.addWidget(self.file_input_label)
-
-        # VIEW FILE
-        self.view_table_button = QPushButton("View Table")
-        self.view_table_button.setEnabled(False)
-        self.view_table_button.clicked.connect(self.view_table_button_clicked)
-        self.main_layout.addWidget(self.view_table_button)
-
         # PLOT CHECKBOXES
         self.sync_x_axes_btn = QCheckBox("Sync X axes")
         self.sync_x_axes_btn.stateChanged.connect(self.sync_x_state_changed)
@@ -72,16 +57,6 @@ class DiagramixPlotControls(QWidget):
         self.draw_button.clicked.connect(self.diagramix_plot_ref.draw)
         self.main_layout.addWidget(self.draw_button, alignment=Qt.AlignmentFlag.AlignBottom)
 
-    def file_input_clicked(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "Wybierz plik", "",
-                                                   "Wszystkie pliki (*);;Pliki CSV (*.csv);;Pliki TXT (*.txt)")
-        if file_name:
-            self.input_file_path = file_name
-            self.file_input_label.setText(f"File: {file_name}")
-            load_succeeded = self.data_controller.load_file(file_path=file_name)
-
-        self.view_table_button.setEnabled(load_succeeded)
-
     def sync_x_state_changed(self, state):
         if state == Qt.CheckState.Unchecked.value or state == Qt.CheckState.PartiallyChecked.value:
             self.diagramix_plot_ref.sync_x_axes = False
@@ -95,13 +70,6 @@ class DiagramixPlotControls(QWidget):
         if state == Qt.CheckState.Checked.value:
             self.diagramix_plot_ref.sync_y_axes = True
         self.diagramix_plot_ref.synchronize_y_axes()
-
-    def view_table_button_clicked(self):
-        window = QMainWindow(self)
-        table = DiagramixTableView(self.data_controller.df)
-        window.setWindowTitle("DataFrame Preview")
-        window.setCentralWidget(table)
-        window.show()
 
     def generate_subplots_clicked(self):
         n_subplots = int(self.subplot_control.n_plots_input.text())
@@ -133,26 +101,3 @@ class DiagramixPlotSubplotGenerator(QWidget):
 
         self.generate_button = QPushButton("Generate")
         self.main_layout.addWidget(self.generate_button, 2, 0, 1, 2)
-
-
-class DiagramixTableView(QTableWidget):
-
-    def __init__(self, df):
-        super().__init__()
-        self.df = df
-        self.populate_table()
-
-    def populate_table(self):
-        # Set the number of rows and columns
-        self.setRowCount(self.df.shape[0])
-        self.setColumnCount(self.df.shape[1])
-
-        # Set the column headers
-        # self.setHorizontalHeaderLabels(self.df.columns)
-
-        # Populate the table with data
-        for row in range(self.df.shape[0]):
-            for col in range(self.df.shape[1]):
-                item = QTableWidgetItem(str(self.df.iloc[row, col]))
-                self.setItem(row, col, item)
-                item.setFlags(item.flags() ^ (QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEditable))
