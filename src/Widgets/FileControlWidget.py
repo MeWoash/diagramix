@@ -1,5 +1,5 @@
 from PyQt6 import QtCore
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import QSize, Qt, QEvent, pyqtSignal
 from PyQt6.QtWidgets import QWidget, QPushButton, QLabel, QVBoxLayout, QFileDialog, QMainWindow, \
     QTableWidget, QTableWidgetItem
 from DataControl.DiagramixDataController import DiagramixDataController
@@ -7,6 +7,8 @@ from Widgets.PlotWidgets import DiagramixPlot
 
 
 class DiagramixFileWidget(QWidget):
+
+    enabler = pyqtSignal()
     def __init__(self, parent: QWidget, diagramix_plot: DiagramixPlot) -> None:
         super().__init__(parent)
 
@@ -32,15 +34,16 @@ class DiagramixFileWidget(QWidget):
         self.view_table_button.clicked.connect(self.view_table_button_clicked)
         self.main_layout.addWidget(self.view_table_button)
 
-
     def file_input_clicked(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "Wybierz plik", "", "Wszystkie pliki (*);;Pliki CSV (*.csv);;Pliki TXT (*.txt)")
+        file_name, _ = QFileDialog.getOpenFileName(self, "Wybierz plik", "",
+                                                   "Wszystkie pliki (*);;Pliki CSV (*.csv);;Pliki TXT (*.txt)")
         if file_name:
             self.input_file_path = file_name
             self.file_input_label.setText(f"File: {file_name}")
             load_succeeded = self.data_controller.load_file(file_path=file_name)
 
         self.view_table_button.setEnabled(load_succeeded)
+        self.enabler.emit()
 
     def view_table_button_clicked(self):
         window = QMainWindow(self)
@@ -48,6 +51,7 @@ class DiagramixFileWidget(QWidget):
         window.setWindowTitle("DataFrame Preview")
         window.setCentralWidget(table)
         window.show()
+
 
 class DiagramixTableView(QTableWidget):
 
