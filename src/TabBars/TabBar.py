@@ -14,7 +14,6 @@ class DiagramixTabBar(QTabWidget):
 
         self.diagramix_plot_ref: DiagramixPlot = diagramix_plot
         self.create_layout()
-        self.enab = QEvent(2)
 
     def create_layout(self):
         self.setTabPosition(QTabWidget.TabPosition.North)
@@ -22,8 +21,9 @@ class DiagramixTabBar(QTabWidget):
         self.setLayout(self.main_layout)
         diagramix_plot_control = DiagramixPlotControls(None, self.diagramix_plot_ref)
         diagramix_multi_ch = DiagramixMultiChPlot(None, self.diagramix_plot_ref)
-        diagramix_file_control = DiagramixFileWidget(None, self.diagramix_plot_ref)
-        self.addTab(diagramix_file_control, "File Import")
+        self.diagramix_file_control = DiagramixFileWidget(None, self.diagramix_plot_ref)
+        self.diagramix_file_control.enabler.connect(self.enable_edit)
+        self.addTab(self.diagramix_file_control, "File Import")
         self.addTab(diagramix_plot_control, "Graph Edit")
         self.addTab(diagramix_multi_ch, "Multi Channel plotting")
         self.setTabEnabled(1, False)
@@ -31,8 +31,8 @@ class DiagramixTabBar(QTabWidget):
         # self.enable_edit()
 
     def enable_edit(self):
-        self.enab.accept()
         self.setTabEnabled(1, True)
+        self.setTabEnabled(2, True)
 
     def __del__(self):
         pass
