@@ -15,9 +15,10 @@ class DiagramixPlot(GraphicsLayoutWidget):
         super().__init__(parent, show, size, title, **kargs)
 
         self.data_controller = DiagramixDataController()
+        self.all_data_items = []
         self.n_subplots = 1
         self.n_max_columns = 1
-        self.subplots = []
+        self.subplots: [DiagramixSubPlot] = []
         self.sync_x_axes = False
         self.sync_y_axes = False
 
@@ -62,56 +63,58 @@ class DiagramixPlot(GraphicsLayoutWidget):
     def clear_plot_items(self):
         for p in self.subplots:
             p.clear_plot_data_items()
-
-
-    def draw(self):
-        self.clear_plot_items()
-        x=np.linspace(0,6.28,100)
-        y=np.sin(x)
-
-        for i in range(len(self.subplots)):
-            plot_object = DiagramixPlotObject(self.subplots[i])
-            plot_object.setData(x,np.cos(x)*np.sin(x*(i+1)))
-            self.subplots[i].add_plot_data_item(plot_object)
-
-            plot_object2 = DiagramixPlotObject(self.subplots[i])
-            plot_object2.setData(x,np.sin(x)*np.cos(x*(i+1)))
-            self.subplots[i].add_plot_data_item(plot_object2)
-
-        self.synchronize_x_axes()
-        self.synchronize_y_axes()
+            self.removeItem(p)
+        self.subplots.clear()
+            
 
 class DiagramixSubPlot(PlotItem):
 
     def __init__(self, parent=None, name=None, labels=None, title=None, viewBox=None, axisItems=None, enableMenu=True, **kargs):
         super().__init__(parent, name, labels, title, viewBox, axisItems, enableMenu, **kargs)
-        self.plot_data_items = []
+        print("Created DiagramixSubPlot")
 
     def __del__(self):
-        self.clear_plot_data_items()
-        print("Deleted SubPlot")
+        print("Deleted DiagramixSubPlot")
 
     def add_plot_data_item(self, plot_data_item: PlotDataItem):
-        self.plot_data_items.append(plot_data_item)
         self.addItem(plot_data_item)
 
+    def remove_plot_data_item(self, item):
+        self.removeItem(item)
+        item.deleteLater()
 
     def clear_plot_data_items(self):
-        self.plot_data_items.clear()
         self.clear()
         
 
 class DiagramixPlotObject(PlotDataItem):
 
-    def __init__(self, parent=None, name=None, labels=None, title=None, viewBox=None, axisItems=None, enableMenu=True, **kargs):
+    def __init__(self, x: np.ndarray, y: np.ndarray, subplot_number: int, subplot_parent:DiagramixSubPlot, RGB:list  = None, parent=None, name=None, labels=None, title=None, viewBox=None, axisItems=None, enableMenu=True, **kargs):
         super().__init__(parent, name, labels, title, viewBox, axisItems, enableMenu, **kargs)
-        R=np.random.randint(0,256)
-        G=np.random.randint(0,256)
-        B=np.random.randint(0,256)
-        self.setPen(R,G,B)
+        if RGB == None:
+            self.RGB = [np.random.randint(0,256),
+                        np.random.randint(0,256),
+                        np.random.randint(0,256)]
+        else:
+            self.RGB = RGB
+
+        self.subplot_number: int = subplot_number
+        self.subplot_parent: DiagramixSubPlot = subplot_parent
+        self.x = x
+        self.y = y
+        self.setPen(*self.RGB)
+        self.update_data()
+        print(f"Created DiagramixPlotObject")
+
+    def update_data(self):
+        self.setData(self.x, self.y)
+
+    def prepare_deleting(self):
+        self.subplot_parent.remove_plot_data_item(self)
 
     def __del__(self):
-        print("Deleted plot line")
+        self.subplot_parent.remove_plot_data_item(self)
+        print("Deleted DiagramixPlotObject")
 
 
 

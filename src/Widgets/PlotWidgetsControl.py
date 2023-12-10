@@ -4,7 +4,7 @@ from pyqtgraph import PlotWidget, GraphicsLayoutWidget, PlotItem
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QPushButton, QLabel, QLineEdit, QCheckBox, QFileDialog, QTableWidget, QTableWidgetItem, QMainWindow, QScrollArea, QComboBox, QColorDialog
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QIntValidator, QColor, QPalette
-from Widgets.PlotWidgets import DiagramixPlot
+from Widgets.PlotWidgets import DiagramixPlot, DiagramixPlotObject
 from DataControl.DiagramixDataController import DiagramixDataController
 import numpy as np
 
@@ -72,16 +72,16 @@ class DiagramixPlotControls(QWidget):
 
         #CLEAR BUTTON
         self.clear_button = QPushButton("Clear")
-        self.clear_button.clicked.connect(self.diagramix_plot_ref.clear_plot_items)
+        self.clear_button.clicked.connect(self.clear_button_wrapper)
         self.main_layout.addWidget(self.clear_button, alignment=Qt.AlignmentFlag.AlignBottom)
 
-        # DRAW BUTTON
-        self.draw_button = QPushButton("Draw")
-        self.draw_button.clicked.connect(self.diagramix_plot_ref.draw)
-        self.main_layout.addWidget(self.draw_button, alignment=Qt.AlignmentFlag.AlignBottom)
+    def clear_button_wrapper(self):
+        self.diagramix_plot_ref.clear_plot_items()
+        self.signal_generator.signal_table.clear_items()
 
     def file_input_clicked(self):
         file_name, _ = QFileDialog.getOpenFileName(self, "Wybierz plik", "", "Wszystkie pliki (*);;Pliki CSV (*.csv);;Pliki TXT (*.txt)")
+        load_succeeded = False
         if file_name:
             self.input_file_path = file_name
             self.file_input_label.setText(f"File: {file_name}")
@@ -117,8 +117,11 @@ class DiagramixPlotControls(QWidget):
         self.diagramix_plot_ref.set_n_subplots(n_subplots)
         self.diagramix_plot_ref.set_n_max_columns(n_max_columns)
 
-        self.diagramix_plot_ref.clear_subplots() 
+        self.clear_button_wrapper()
+        
         self.diagramix_plot_ref.create_subplots()
+
+        self.signal_generator.signal_generator.update_options()
 
 class DiagramixPlotSubplotGenerator(QWidget):
     """
@@ -198,7 +201,7 @@ class DiagramixSignalContainer(QWidget):
         self.setLayout(self.main_layout)
         
         self.signal_table = DiagramixSignalTable(self)
-        self.signal_generator = DiagramixSignalGenerator(self,self.signal_table, self.diagramix_plot_ref)
+        self.signal_generator = DiagramixSignalGenerator(self, self.signal_table, self.diagramix_plot_ref)
 
         signal_generator_label = QLabel("Signal Generator")
         self.main_layout.addWidget(signal_generator_label)
@@ -220,6 +223,7 @@ class DiagramixSignalGenerator(QWidget):
     """
     def __init__(self, parent, signal_table ,diagramix_plot: DiagramixPlot) -> None:
         super().__init__(parent)
+        self.signal_table = signal_table
         self.diagramix_plot_ref:DiagramixPlot = diagramix_plot
         self.data_controller:DiagramixDataController = diagramix_plot.data_controller
 
@@ -265,19 +269,32 @@ class DiagramixSignalGenerator(QWidget):
         self.add_button.clicked.connect(self.add_button_clicked)
         self.main_layout.addWidget(self.add_button, 5, 0, 1, 2)
 
+        self.update_options()
+
+    def update_options(self):
+        self.subplot_box.clear()
+        self.subplot_box.addItems([str(i) for i in range(self.diagramix_plot_ref.n_subplots)])
+
     def color_button_clicked(self):
         color = QColorDialog.getColor()
         self.color_button.setStyleSheet(f'background-color: rgb({color.red()}, {color.green()}, {color.blue()});')
 
     def add_button_clicked(self):
-        #ADD TO LIST
-        self.create_signal()
+
+        x=np.linspace(0,6.28,100)
+        y=np.sin(x)
+        plot_number = int(self.subplot_box.currentText())
+        subplot_parent =  self.diagramix_plot_ref.subplots[plot_number]
+        plot_object = DiagramixPlotObject(x, y, subplot_number=plot_number, subplot_parent=subplot_parent)
+        subplot_parent.add_plot_data_item(plot_object)
 
         #CLEAR
         self.clear_data()
 
-    def create_signal(self):
-        pass
+        plot_object_table = DiagramixSignalTableObject(self.signal_table, plot_object)
+        self.signal_table.add_item(plot_object_table)
+
+        
 
     def clear_data(self):
         self.signal_name_input.clear()
@@ -301,21 +318,58 @@ class DiagramixSignalTable(QScrollArea):
 
     def __init__(self, parent) -> None:
         super().__init__(parent)
-
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
 
-        scroll_area_widget = QWidget()
-        self.setWidget(scroll_area_widget)
+        self.scroll_area_widget = QWidget()
+        self.setWidget(self.scroll_area_widget)
 
         self.scroll_area_layout = QVBoxLayout()
-        scroll_area_widget.setLayout(self.scroll_area_layout)
+        self.scroll_area_widget.setLayout(self.scroll_area_layout)
 
-        for i in range(10):
-            l = QPushButton(f"Stub {i}")
-            l.setMinimumHeight(20)
-            self.scroll_area_layout.addWidget(l)
+    def add_item(self, item):
+        self.scroll_area_layout.addWidget(item)
+
+    def clear_items(self):
+        for i in reversed(range(self.scroll_area_layout.count())): 
+            self.scroll_area_layout.itemAt(i).widget().setParent(None)
+    
+class DiagramixSignalTableObject(QWidget):
+    counter = 0
+    def __init__(self, parent, plot_object_ref: DiagramixPlotObject) -> None:
+        super().__init__(parent)
+        self.plot_object_ref: DiagramixPlotObject = plot_object_ref
+        self.id = DiagramixSignalTableObject.counter
+        DiagramixSignalTableObject.counter += 1
+
+        self.create_layout()
+
+
+    def create_layout(self):
+        self.main_layout = QGridLayout()
+        self.setLayout(self.main_layout)
+
+        self.id_label = QLabel(f"#{self.id}")
+        self.main_layout.addWidget(self.id_label, 0, 0)
+
+        self.id_subplot = QLabel(f"Subplot: {self.plot_object_ref.subplot_number}")
+        self.main_layout.addWidget(self.id_subplot, 0, 1)
+
+        self.delete_button = QPushButton(f"Delete")
+        self.delete_button.clicked.connect(self.delete_clicked)
+        self.main_layout.addWidget(self.delete_button, 0, 2)
+
+    def delete_clicked(self):
+        self.plot_object_ref.prepare_deleting()
+        self.plot_object_ref.deleteLater()
+        self.deleteLater()
+        
+        
+
+
+    
+
 
 
     
